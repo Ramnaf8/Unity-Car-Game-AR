@@ -4,6 +4,12 @@ using System.Collections.Generic;
 
 public class CarController : MonoBehaviour
 {
+    public enum ControlMode
+    {
+        Keyboard,
+        Buttons
+    };
+
    public enum Axel
     {
         Front,
@@ -16,8 +22,11 @@ public class CarController : MonoBehaviour
     {
         public GameObject wheelModel;
         public WheelCollider wheelCollider;
+        public GameObject wheelEffectObj;
+        public ParticleSystem smokeParticle;
         public Axel axel;
     }
+    public ControlMode control;
 
     public float maxAcceleration = 30.0f;
     public float brakeAcceleration = 50.0f;
@@ -44,7 +53,7 @@ public class CarController : MonoBehaviour
     {
         GetInputs();
         AnimateWheels();
-        //WheelEffects();
+        WheelEffects();
     }
 
     void FixedUpdate()
@@ -66,10 +75,11 @@ public class CarController : MonoBehaviour
 
     void GetInputs()
     {
-        //if(control == ControlMode.Keyboard)
+        if(control == ControlMode.Keyboard){
         
             moveInput = Input.GetAxis("Vertical");
             steerInput = Input.GetAxis("Horizontal");
+            }
         
     }
 
@@ -126,6 +136,24 @@ public class CarController : MonoBehaviour
             wheel.wheelCollider.GetWorldPose(out pos, out rot);
             wheel.wheelModel.transform.position = pos;
             wheel.wheelModel.transform.rotation = rot;
+        }
+    }
+
+    void WheelEffects()
+    {
+        foreach (var wheel in wheels)
+        {
+            //var dirtParticleMainSettings = wheel.smokeParticle.main;
+
+            if (Input.GetKey(KeyCode.Space) && wheel.axel == Axel.Rear && wheel.wheelCollider.isGrounded == true && carRb.velocity.magnitude >= 10.0f)
+            {
+                wheel.wheelEffectObj.GetComponentInChildren<TrailRenderer>().emitting = true;
+                wheel.smokeParticle.Emit(1);
+            }
+            else
+            {
+                wheel.wheelEffectObj.GetComponentInChildren<TrailRenderer>().emitting = false;
+            }
         }
     }
 }
